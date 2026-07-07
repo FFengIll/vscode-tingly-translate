@@ -3,6 +3,13 @@
   "displayName": "tingly-translate",
   "description": "vscode-tingly-translate",
   "version": "0.0.1",
+  "author": {
+    "name": "Tingly"
+  },
+  "repository": {
+    "url": "https://github.com/FFengIll/vscode-tingly-translate"
+  },
+  "publisher": "tingly-dev",
   "engines": {
     "vscode": "^1.125.0"
   },
