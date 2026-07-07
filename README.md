@@ -28,6 +28,7 @@ VS Code reading-layer translation for selected editor text.
   "tinglyTranslate.targetLanguage": "zh-CN",
   "tinglyTranslate.outputMode": "inline",
   "tinglyTranslate.inlineMaxChars": 120,
+  "tinglyTranslate.providerOptions": {},
   "tinglyTranslate.timeoutMs": 30000,
   "tinglyTranslate.proxy.enabled": false,
   "tinglyTranslate.proxy.url": "http://127.0.0.1:7890"
@@ -52,13 +53,17 @@ Provider choices:
 
 ## Provider Examples
 
+Provider-specific values all live in `tinglyTranslate.providerOptions`. Only fill the keys needed by the selected provider.
+
 LibreTranslate:
 
 ```json
 {
   "tinglyTranslate.provider": "libreTranslate",
-  "tinglyTranslate.providers.libreTranslate.endpoint": "https://libretranslate.com/translate",
-  "tinglyTranslate.providers.libreTranslate.apiKey": ""
+  "tinglyTranslate.providerOptions": {
+    "endpoint": "https://libretranslate.com/translate",
+    "apiKey": ""
+  }
 }
 ```
 
@@ -68,7 +73,9 @@ DeepL:
 {
   "tinglyTranslate.provider": "deepl",
   "tinglyTranslate.targetLanguage": "ZH",
-  "tinglyTranslate.providers.deepl.apiKey": "YOUR_DEEPL_KEY"
+  "tinglyTranslate.providerOptions": {
+    "apiKey": "YOUR_DEEPL_KEY"
+  }
 }
 ```
 
@@ -79,7 +86,9 @@ MyMemory:
   "tinglyTranslate.provider": "myMemory",
   "tinglyTranslate.sourceLanguage": "en",
   "tinglyTranslate.targetLanguage": "zh-CN",
-  "tinglyTranslate.providers.myMemory.email": "you@example.com"
+  "tinglyTranslate.providerOptions": {
+    "email": "you@example.com"
+  }
 }
 ```
 
@@ -88,7 +97,9 @@ Lingva:
 ```json
 {
   "tinglyTranslate.provider": "lingva",
-  "tinglyTranslate.providers.lingva.endpoint": "https://lingva.ml"
+  "tinglyTranslate.providerOptions": {
+    "endpoint": "https://lingva.ml"
+  }
 }
 ```
 
@@ -99,7 +110,9 @@ Apertium:
   "tinglyTranslate.provider": "apertium",
   "tinglyTranslate.sourceLanguage": "eng",
   "tinglyTranslate.targetLanguage": "spa",
-  "tinglyTranslate.providers.apertium.endpoint": "https://apertium.org/apy"
+  "tinglyTranslate.providerOptions": {
+    "endpoint": "https://apertium.org/apy"
+  }
 }
 ```
 
@@ -108,8 +121,10 @@ Baidu:
 ```json
 {
   "tinglyTranslate.provider": "baidu",
-  "tinglyTranslate.providers.baidu.appId": "YOUR_BAIDU_APP_ID",
-  "tinglyTranslate.providers.baidu.apiKey": "YOUR_BAIDU_SECRET_KEY"
+  "tinglyTranslate.providerOptions": {
+    "appId": "YOUR_BAIDU_APP_ID",
+    "apiKey": "YOUR_BAIDU_SECRET_KEY"
+  }
 }
 ```
 
@@ -118,8 +133,10 @@ Youdao:
 ```json
 {
   "tinglyTranslate.provider": "youdao",
-  "tinglyTranslate.providers.youdao.appKey": "YOUR_YOUDAO_APP_KEY",
-  "tinglyTranslate.providers.youdao.apiSecret": "YOUR_YOUDAO_APP_SECRET"
+  "tinglyTranslate.providerOptions": {
+    "appKey": "YOUR_YOUDAO_APP_KEY",
+    "apiSecret": "YOUR_YOUDAO_APP_SECRET"
+  }
 }
 ```
 
@@ -128,10 +145,12 @@ OpenAI-compatible:
 ```json
 {
   "tinglyTranslate.provider": "openai",
-  "tinglyTranslate.providers.openai.baseUrl": "https://api.openai.com/v1",
-  "tinglyTranslate.providers.openai.apiKey": "YOUR_OPENAI_KEY",
-  "tinglyTranslate.providers.openai.model": "gpt-4o-mini",
-  "tinglyTranslate.providers.openai.prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}"
+  "tinglyTranslate.providerOptions": {
+    "baseUrl": "https://api.openai.com/v1",
+    "apiKey": "YOUR_OPENAI_KEY",
+    "model": "gpt-4o-mini",
+    "prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}"
+  }
 }
 ```
 
@@ -140,10 +159,12 @@ Anthropic:
 ```json
 {
   "tinglyTranslate.provider": "anthropic",
-  "tinglyTranslate.providers.anthropic.baseUrl": "https://api.anthropic.com/v1",
-  "tinglyTranslate.providers.anthropic.apiKey": "YOUR_ANTHROPIC_KEY",
-  "tinglyTranslate.providers.anthropic.model": "claude-3-5-haiku-latest",
-  "tinglyTranslate.providers.anthropic.prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}"
+  "tinglyTranslate.providerOptions": {
+    "baseUrl": "https://api.anthropic.com/v1",
+    "apiKey": "YOUR_ANTHROPIC_KEY",
+    "model": "claude-3-5-haiku-latest",
+    "prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}"
+  }
 }
 ```
 

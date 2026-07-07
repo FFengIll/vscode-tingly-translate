@@ -169,45 +169,10 @@ Configuration namespace: `tinglyTranslate`.
 | `tinglyTranslate.targetLanguage` | string | `zh-CN` | Target language. |
 | `tinglyTranslate.outputMode` | enum | `inline` | `inline`, `replace`, `insertBelow`, `copy`, `showOnly`. |
 | `tinglyTranslate.inlineMaxChars` | number | `120` | Maximum characters shown in the inline decoration; hover shows the full translation. |
+| `tinglyTranslate.providerOptions` | object | `{}` | Advanced options for the selected provider. Common keys: `apiKey`, `endpoint`, `baseUrl`, `model`, `prompt`, `region`, `appId`, `appKey`, `apiSecret`, `email`, `vocabId`, `maxTokens`, `temperature`, `version`. |
 | `tinglyTranslate.timeoutMs` | number | `30000` | Request timeout. |
 | `tinglyTranslate.proxy.enabled` | boolean | `false` | Enable explicit proxy for translation requests. |
 | `tinglyTranslate.proxy.url` | string | empty | HTTP proxy URL, e.g. `http://127.0.0.1:7890`. HTTPS translation endpoints are tunneled through CONNECT. |
-| `tinglyTranslate.providers.googleCloud.apiKey` | string | empty | Google Cloud Translation API key. |
-| `tinglyTranslate.providers.googleCloud.endpoint` | string | empty | Optional Google Cloud endpoint override. |
-| `tinglyTranslate.providers.microsoftAzure.apiKey` | string | empty | Microsoft Azure Translator API key. |
-| `tinglyTranslate.providers.microsoftAzure.endpoint` | string | empty | Optional Microsoft Azure endpoint override. |
-| `tinglyTranslate.providers.microsoftAzure.region` | string | empty | Microsoft Azure Translator region. |
-| `tinglyTranslate.providers.libreTranslate.endpoint` | string | empty | LibreTranslate endpoint; defaults to `https://libretranslate.com/translate`. |
-| `tinglyTranslate.providers.libreTranslate.apiKey` | string | empty | Optional LibreTranslate API key. |
-| `tinglyTranslate.providers.deepl.apiKey` | string | empty | DeepL API key. |
-| `tinglyTranslate.providers.deepl.endpoint` | string | empty | DeepL endpoint; defaults to DeepL Free API. |
-| `tinglyTranslate.providers.myMemory.endpoint` | string | empty | MyMemory endpoint; defaults to `https://api.mymemory.translated.net/get`. |
-| `tinglyTranslate.providers.myMemory.apiKey` | string | empty | Optional MyMemory API key. |
-| `tinglyTranslate.providers.myMemory.email` | string | empty | Optional MyMemory contact email. |
-| `tinglyTranslate.providers.lingva.endpoint` | string | `https://lingva.ml` | Lingva instance base URL. |
-| `tinglyTranslate.providers.apertium.endpoint` | string | `https://apertium.org/apy` | Apertium APY base URL. |
-| `tinglyTranslate.providers.baidu.appId` | string | empty | Baidu Translate app ID. |
-| `tinglyTranslate.providers.baidu.apiKey` | string | empty | Baidu Translate secret key. |
-| `tinglyTranslate.providers.baidu.endpoint` | string | Baidu endpoint | Baidu Translate API endpoint. |
-| `tinglyTranslate.providers.youdao.appKey` | string | empty | Youdao Translate app key. |
-| `tinglyTranslate.providers.youdao.apiSecret` | string | empty | Youdao Translate app secret. |
-| `tinglyTranslate.providers.youdao.endpoint` | string | Youdao endpoint | Youdao Translate API endpoint. |
-| `tinglyTranslate.providers.youdao.vocabId` | string | empty | Optional Youdao vocabulary ID. |
-| `tinglyTranslate.providers.openai.baseUrl` | string | `https://api.openai.com/v1` | OpenAI-compatible base URL. |
-| `tinglyTranslate.providers.openai.endpoint` | string | empty | Optional full chat completions endpoint override. |
-| `tinglyTranslate.providers.openai.apiKey` | string | empty | OpenAI-compatible API key. |
-| `tinglyTranslate.providers.openai.model` | string | `gpt-4o-mini` | OpenAI-compatible model name. |
-| `tinglyTranslate.providers.openai.prompt` | string | translation prompt | Prompt template supporting `{text}`, `{sourceLanguage}`, `{targetLanguage}`. |
-| `tinglyTranslate.providers.openai.maxTokens` | number | `2000` | Maximum output tokens. |
-| `tinglyTranslate.providers.openai.temperature` | number | `0.2` | Sampling temperature. |
-| `tinglyTranslate.providers.anthropic.baseUrl` | string | `https://api.anthropic.com/v1` | Anthropic base URL. |
-| `tinglyTranslate.providers.anthropic.endpoint` | string | empty | Optional full messages endpoint override. |
-| `tinglyTranslate.providers.anthropic.apiKey` | string | empty | Anthropic API key. |
-| `tinglyTranslate.providers.anthropic.model` | string | `claude-3-5-haiku-latest` | Anthropic model name. |
-| `tinglyTranslate.providers.anthropic.prompt` | string | translation prompt | Prompt template supporting `{text}`, `{sourceLanguage}`, `{targetLanguage}`. |
-| `tinglyTranslate.providers.anthropic.maxTokens` | number | `2000` | Maximum output tokens. |
-| `tinglyTranslate.providers.anthropic.temperature` | number | `0.2` | Sampling temperature. |
-| `tinglyTranslate.providers.anthropic.version` | string | `2023-06-01` | Anthropic API version header. |
 
 Security note: API keys in VS Code settings can leak through checked-in `.vscode/settings.json`. Post-MVP should add commands to set/list/clear provider secrets using `context.secrets`.
 
@@ -551,7 +516,7 @@ Use concise VS Code notifications for expected user-facing failures:
 | --- | --- |
 | No active editor | `Open an editor and select text to translate.` |
 | No selected text | `Select text to translate first.` |
-| Missing provider API key | `Configure tinglyTranslate.providers.<provider>.apiKey before using this provider.` |
+| Missing provider API key | `Configure tinglyTranslate.providerOptions.apiKey before using this provider.` |
 | Timeout | `Translation request timed out after <timeout> ms.` |
 | Network/proxy failure | `Translation request failed. Check provider endpoint and proxy settings.` |
 | Provider response parse failure | `Translation provider returned an unexpected response.` |
@@ -563,7 +528,7 @@ Detailed diagnostics should go to an output channel named `Tingly Translate`. Do
 
 - Never log selected source text by default.
 - Never log API keys, authorization headers, full signed URLs, or proxy credentials.
-- Warn in README and setting descriptions that `tinglyTranslate.providers.<provider>.apiKey` settings are an MVP compromise.
+- Warn in README and setting descriptions that API keys inside `tinglyTranslate.providerOptions` are an MVP compromise.
 - Warn that `googleFree` and `microsoftFree` use unofficial web endpoints that may change.
 - Follow-up: add commands:
   - `Tingly Translate: Set Provider API Key`
@@ -641,10 +606,10 @@ MVP is complete when:
 - `googleFree` works without API key.
 - `microsoftFree` works without API key.
 - `googleCloud`, `microsoftAzure`, `libreTranslate`, `deepl`, `myMemory`, `lingva`, `apertium`, `baidu`, `youdao`, `openai`, and `anthropic` provider paths are available.
-- Configurable source language, target language, output mode, inline max chars, auth mode, endpoint, API key, timeout, Microsoft region, and proxy settings are documented in `package.json`.
+- Configurable source language, target language, output mode, inline max chars, provider options, timeout, and proxy settings are documented in `package.json`.
 - Selection replacement, insert-below, copy, and show-only behavior remain available.
 - User-facing errors are actionable and do not leak secrets.
-- `pnpm run compile` passes once dependencies are restored.
+- `./node_modules/.bin/tsc -p . --noEmit`, `./node_modules/.bin/webpack`, and `./node_modules/.bin/vscode-test` pass.
 - README documents setup, settings, provider examples, and known limitations.
 
 ## 11. Implementation plan
@@ -654,7 +619,7 @@ Recommended order:
 1. Restore dependencies with `CI=true pnpm install`.
 2. Run `pnpm run compile`.
 3. Manually verify current prototype trigger surfaces and inline rendering.
-4. Add focused tests for config parsing, provider parsing, and inline formatting.
+4. Add focused tests for config parsing and simplified `providerOptions`.
 5. Replace hand-rolled HTTP/proxy helper with `undici`.
 6. Move code out of `src/extension.ts` into focused modules.
 7. Add SecretStorage commands for API keys.
