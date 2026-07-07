@@ -13,11 +13,13 @@ Fast prototype VS Code extension for translating selected editor text with Googl
 
 ## Commands
 
-- `Tingly Translate: Translate Selection`
-- `Tingly Translate: Clear Inline Translations`
+- `Tingly Translate: Translate Selection` (`Cmd+Alt+T` on macOS, `Ctrl+Alt+T` on Windows/Linux)
+- `Tingly Translate: Clear Inline Translations` (`Cmd+Alt+Shift+T` on macOS, `Ctrl+Alt+Shift+T` on Windows/Linux)
 - `Tingly Translate: Replace Selection with Translation`
 - `Tingly Translate: Insert Translation Below`
 - `Tingly Translate: Copy Translation`
+
+When text is selected, the translate command also appears as a globe button in the editor title bar.
 
 ## Settings
 

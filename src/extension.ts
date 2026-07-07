@@ -51,10 +51,40 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelectionReplace', () => translateSelection('replace')),
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelectionInsertBelow', () => translateSelection('insertBelow')),
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelectionCopy', () => translateSelection('copy')),
+		vscode.languages.registerCodeActionsProvider(
+			{ scheme: 'file' },
+			new TinglyTranslateCodeActionProvider(),
+			{
+				providedCodeActionKinds: [vscode.CodeActionKind.RefactorRewrite],
+			},
+		),
 	);
 }
 
 export function deactivate() {}
+
+class TinglyTranslateCodeActionProvider implements vscode.CodeActionProvider {
+	provideCodeActions(
+		document: vscode.TextDocument,
+		range: vscode.Range,
+	): vscode.CodeAction[] {
+		if (range.isEmpty || document.getText(range).trim().length === 0) {
+			return [];
+		}
+
+		const translateAction = new vscode.CodeAction(
+			'Tingly Translate: Translate Selection',
+			vscode.CodeActionKind.RefactorRewrite,
+		);
+		translateAction.command = {
+			command: 'vscode-tingly-translate.translateSelection',
+			title: 'Tingly Translate: Translate Selection',
+		};
+		translateAction.isPreferred = true;
+
+		return [translateAction];
+	}
+}
 
 async function translateSelection(forcedMode?: OutputMode): Promise<void> {
 	const editor = vscode.window.activeTextEditor;

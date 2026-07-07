@@ -10,6 +10,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onLanguage",
     "onCommand:vscode-tingly-translate.helloWorld",
     "onCommand:vscode-tingly-translate.translateSelection",
     "onCommand:vscode-tingly-translate.clearInlineTranslations",
@@ -26,7 +27,8 @@
       },
       {
         "command": "vscode-tingly-translate.translateSelection",
-        "title": "Tingly Translate: Translate Selection"
+        "title": "Tingly Translate: Translate Selection",
+        "icon": "$(globe)"
       },
       {
         "command": "vscode-tingly-translate.clearInlineTranslations",
@@ -46,6 +48,13 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "vscode-tingly-translate.translateSelection",
+          "when": "editorTextFocus && editorHasSelection",
+          "group": "navigation"
+        }
+      ],
       "editor/context": [
         {
           "command": "vscode-tingly-translate.translateSelection",
@@ -73,6 +82,20 @@
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "vscode-tingly-translate.translateSelection",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "vscode-tingly-translate.clearInlineTranslations",
+        "key": "ctrl+alt+shift+t",
+        "mac": "cmd+alt+shift+t",
+        "when": "editorTextFocus"
+      }
+    ],
     "configuration": {
       "title": "Tingly Translate",
       "properties": {
