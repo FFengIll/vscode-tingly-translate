@@ -40,19 +40,21 @@ suite('Configuration', () => {
 		assert.strictEqual(normalizeProvider('youdao'), 'youdao');
 	});
 
-	test('maps OpenAI-compatible options from providerOptions', () => {
+	test('maps OpenAI-compatible options from aiProviderOptions', () => {
 		const config = readConfig({
 			provider: 'openai',
 			sourceLanguage: 'en',
 			targetLanguage: 'ja',
-			providerOptions: {
-				apiKey: 'openai-key',
-				baseUrl: 'https://example.test/v1',
-				endpoint: 'https://example.test/custom/chat',
-				model: 'custom-model',
-				prompt: 'Translate {text} to {targetLanguage}',
-				maxTokens: 321,
-				temperature: 0.7,
+			aiProviderOptions: {
+				openai: {
+					apiKey: 'openai-key',
+					baseUrl: 'https://example.test/v1',
+					endpoint: 'https://example.test/custom/chat',
+					model: 'custom-model',
+					prompt: 'Translate {text} to {targetLanguage}',
+					maxTokens: 321,
+					temperature: 0.7,
+				},
 			},
 		});
 
@@ -66,22 +68,26 @@ suite('Configuration', () => {
 		assert.strictEqual(config.openai.temperature, 0.7);
 	});
 
-	test('maps signed China provider options from providerOptions', () => {
+	test('maps credentialed API provider options from apiProviderOptions', () => {
 		const baidu = readConfig({
 			provider: 'baidu',
-			providerOptions: {
-				appId: 'baidu-app',
-				apiKey: 'baidu-secret',
-				endpoint: 'https://baidu.example/translate',
+			apiProviderOptions: {
+				baidu: {
+					appId: 'baidu-app',
+					apiKey: 'baidu-secret',
+					endpoint: 'https://baidu.example/translate',
+				},
 			},
 		});
 		const youdao = readConfig({
 			provider: 'youdao',
-			providerOptions: {
-				appKey: 'youdao-app',
-				apiSecret: 'youdao-secret',
-				vocabId: 'domain-vocab',
-				endpoint: 'https://youdao.example/api',
+			apiProviderOptions: {
+				youdao: {
+					appKey: 'youdao-app',
+					apiSecret: 'youdao-secret',
+					vocabId: 'domain-vocab',
+					endpoint: 'https://youdao.example/api',
+				},
 			},
 		});
 
@@ -94,7 +100,24 @@ suite('Configuration', () => {
 		assert.strictEqual(youdao.youdao.endpoint, 'https://youdao.example/api');
 	});
 
-	test('applies provider defaults when providerOptions omits advanced values', () => {
+	test('maps public provider options from publicProviderOptions', () => {
+		const config = readConfig({
+			provider: 'myMemory',
+			publicProviderOptions: {
+				myMemory: {
+					apiKey: 'memory-key',
+					email: 'you@example.com',
+					endpoint: 'https://memory.example/get',
+				},
+			},
+		});
+
+		assert.strictEqual(config.myMemory.apiKey, 'memory-key');
+		assert.strictEqual(config.myMemory.email, 'you@example.com');
+		assert.strictEqual(config.myMemory.endpoint, 'https://memory.example/get');
+	});
+
+	test('applies provider defaults when provider groups omit advanced values', () => {
 		const lingva = readConfig({ provider: 'lingva' });
 		const apertium = readConfig({ provider: 'apertium' });
 		const anthropic = readConfig({ provider: 'anthropic' });
@@ -108,14 +131,13 @@ suite('Configuration', () => {
 		assert.strictEqual(anthropic.anthropic.version, '2023-06-01');
 	});
 
-	test('ignores removed legacy provider paths', () => {
+	test('does not read flat legacy provider paths', () => {
 		const config = readConfig({
 			provider: 'openai',
 			'providers.openai.apiKey': 'legacy-key',
 			'providers.openai.model': 'legacy-model',
 			apiKey: 'flat-legacy-key',
 			endpoint: 'https://legacy.example',
-			providerOptions: {},
 		});
 
 		assert.strictEqual(config.openai.apiKey, '');

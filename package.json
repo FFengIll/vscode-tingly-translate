@@ -150,10 +150,20 @@
           "maximum": 500,
           "description": "Maximum characters shown in the inline translation decoration before truncating. Hover shows the full translation."
         },
-        "tinglyTranslate.providerOptions": {
+        "tinglyTranslate.publicProviderOptions": {
           "type": "object",
           "default": {},
-          "description": "Advanced options for the selected provider. Common keys: apiKey, endpoint, baseUrl, model, prompt, region, appId, appKey, apiSecret, email, vocabId, maxTokens, temperature, version."
+          "description": "Options for public/free providers. Supported nested keys: libreTranslate, myMemory, lingva, apertium."
+        },
+        "tinglyTranslate.apiProviderOptions": {
+          "type": "object",
+          "default": {},
+          "description": "Options for credentialed translation API providers. Supported nested keys: googleCloud, microsoftAzure, deepl, baidu, youdao."
+        },
+        "tinglyTranslate.aiProviderOptions": {
+          "type": "object",
+          "default": {},
+          "description": "Options for AI translation providers. Supported nested keys: openai, anthropic."
         },
         "tinglyTranslate.timeoutMs": {
           "type": "number",

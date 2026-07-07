@@ -19,7 +19,9 @@ VS Code reading-layer translation for selected editor text.
 - `Tingly Translate: Insert Translation Below`
 - `Tingly Translate: Copy Translation`
 
-## Basic Settings
+## Complete JSON Configuration
+
+Put this in your VS Code user or workspace `settings.json`. Pick one `provider`, then fill the matching provider group.
 
 ```json
 {
@@ -28,145 +30,222 @@ VS Code reading-layer translation for selected editor text.
   "tinglyTranslate.targetLanguage": "zh-CN",
   "tinglyTranslate.outputMode": "inline",
   "tinglyTranslate.inlineMaxChars": 120,
-  "tinglyTranslate.providerOptions": {},
+  "tinglyTranslate.publicProviderOptions": {},
+  "tinglyTranslate.apiProviderOptions": {},
+  "tinglyTranslate.aiProviderOptions": {},
   "tinglyTranslate.timeoutMs": 30000,
   "tinglyTranslate.proxy.enabled": false,
   "tinglyTranslate.proxy.url": "http://127.0.0.1:7890"
 }
 ```
 
-Provider choices:
-
-- `googleFree`
-- `microsoftFree`
-- `googleCloud`
-- `microsoftAzure`
-- `libreTranslate`
-- `deepl`
-- `myMemory`
-- `lingva`
-- `apertium`
-- `baidu`
-- `youdao`
-- `openai`
-- `anthropic`
-
-## Provider Examples
-
-Provider-specific values all live in `tinglyTranslate.providerOptions`. Only fill the keys needed by the selected provider.
-
-LibreTranslate:
+All available settings:
 
 ```json
 {
-  "tinglyTranslate.provider": "libreTranslate",
-  "tinglyTranslate.providerOptions": {
-    "endpoint": "https://libretranslate.com/translate",
-    "apiKey": ""
-  }
+  "tinglyTranslate.provider": "googleFree",
+  "tinglyTranslate.sourceLanguage": "auto",
+  "tinglyTranslate.targetLanguage": "zh-CN",
+  "tinglyTranslate.outputMode": "inline",
+  "tinglyTranslate.inlineMaxChars": 120,
+  "tinglyTranslate.publicProviderOptions": {
+    "libreTranslate": {
+      "endpoint": "https://libretranslate.com/translate",
+      "apiKey": ""
+    },
+    "myMemory": {
+      "endpoint": "https://api.mymemory.translated.net/get",
+      "email": "you@example.com",
+      "apiKey": ""
+    },
+    "lingva": {
+      "endpoint": "https://lingva.ml"
+    },
+    "apertium": {
+      "endpoint": "https://apertium.org/apy"
+    }
+  },
+  "tinglyTranslate.apiProviderOptions": {
+    "googleCloud": {
+      "apiKey": "YOUR_GOOGLE_CLOUD_API_KEY",
+      "endpoint": "https://translation.googleapis.com/language/translate/v2"
+    },
+    "microsoftAzure": {
+      "apiKey": "YOUR_AZURE_TRANSLATOR_KEY",
+      "region": "eastus",
+      "endpoint": "https://api.cognitive.microsofttranslator.com/translate"
+    },
+    "deepl": {
+      "apiKey": "YOUR_DEEPL_KEY",
+      "endpoint": "https://api-free.deepl.com/v2/translate"
+    },
+    "baidu": {
+      "appId": "YOUR_BAIDU_APP_ID",
+      "apiKey": "YOUR_BAIDU_SECRET_KEY",
+      "endpoint": "https://fanyi-api.baidu.com/api/trans/vip/translate"
+    },
+    "youdao": {
+      "appKey": "YOUR_YOUDAO_APP_KEY",
+      "apiSecret": "YOUR_YOUDAO_APP_SECRET",
+      "vocabId": "",
+      "endpoint": "https://openapi.youdao.com/api"
+    }
+  },
+  "tinglyTranslate.aiProviderOptions": {
+    "openai": {
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKey": "YOUR_OPENAI_KEY",
+      "model": "gpt-4o-mini",
+      "prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}",
+      "maxTokens": 2000,
+      "temperature": 0.2
+    },
+    "anthropic": {
+      "baseUrl": "https://api.anthropic.com/v1",
+      "apiKey": "YOUR_ANTHROPIC_KEY",
+      "model": "claude-3-5-haiku-latest",
+      "prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}",
+      "maxTokens": 2000,
+      "temperature": 0.2,
+      "version": "2023-06-01"
+    }
+  },
+  "tinglyTranslate.timeoutMs": 30000,
+  "tinglyTranslate.proxy.enabled": false,
+  "tinglyTranslate.proxy.url": "http://127.0.0.1:7890"
 }
 ```
 
-DeepL:
+`outputMode` values:
 
-```json
-{
-  "tinglyTranslate.provider": "deepl",
-  "tinglyTranslate.targetLanguage": "ZH",
-  "tinglyTranslate.providerOptions": {
-    "apiKey": "YOUR_DEEPL_KEY"
-  }
-}
-```
+- `inline`: show translation at the end of the selected line without changing the document.
+- `replace`: replace the selected text.
+- `insertBelow`: insert the translation below the selection.
+- `copy`: copy the translation to the clipboard.
+- `showOnly`: print the translation to the Tingly Translate output channel.
 
-MyMemory:
+## Provider Options
+
+Only one provider is active at a time. Unused provider groups are ignored.
+
+### Free or Public Providers
+
+These are best for quick local testing. They may be rate limited or unavailable depending on the public endpoint.
+
+| Provider         | Required options | Optional options              | Notes                              |
+| ---------------- | ---------------- | ----------------------------- | ---------------------------------- |
+| `googleFree`     | none             | none                          | Unofficial public endpoint.        |
+| `microsoftFree`  | none             | none                          | Unofficial public endpoint.        |
+| `myMemory`       | none             | `endpoint`, `email`, `apiKey` | Public usage works best with email. |
+| `lingva`         | none             | `endpoint`                    | Public instance availability varies. |
+| `apertium`       | none             | `endpoint`                    | Requires Apertium language codes.  |
+| `libreTranslate` | none             | `endpoint`, `apiKey`          | Some instances require `apiKey`.   |
+
+Example:
 
 ```json
 {
   "tinglyTranslate.provider": "myMemory",
-  "tinglyTranslate.sourceLanguage": "en",
+  "tinglyTranslate.sourceLanguage": "auto",
   "tinglyTranslate.targetLanguage": "zh-CN",
-  "tinglyTranslate.providerOptions": {
-    "email": "you@example.com"
+  "tinglyTranslate.publicProviderOptions": {
+    "myMemory": {
+      "email": "you@example.com"
+    }
   }
 }
 ```
 
-Lingva:
+### Translation API Providers
+
+These use official translation APIs and normally require credentials.
+
+| Provider         | Required options      | Optional options | Notes                              |
+| ---------------- | --------------------- | ---------------- | ---------------------------------- |
+| `googleCloud`    | `apiKey`              | `endpoint`       | Uses Google Cloud Translation API. |
+| `microsoftAzure` | `apiKey`, `region`    | `endpoint`       | Uses Azure Translator.             |
+| `deepl`          | `apiKey`              | `endpoint`       | Defaults to DeepL free API endpoint. |
+| `baidu`          | `appId`, `apiKey`     | `endpoint`       | `apiKey` is the Baidu secret key.  |
+| `youdao`         | `appKey`, `apiSecret` | `endpoint`, `vocabId` | Uses Youdao signed API.       |
+
+Google Cloud example:
 
 ```json
 {
-  "tinglyTranslate.provider": "lingva",
-  "tinglyTranslate.providerOptions": {
-    "endpoint": "https://lingva.ml"
+  "tinglyTranslate.provider": "googleCloud",
+  "tinglyTranslate.targetLanguage": "zh-CN",
+  "tinglyTranslate.apiProviderOptions": {
+    "googleCloud": {
+      "apiKey": "YOUR_GOOGLE_CLOUD_API_KEY",
+      "endpoint": "https://translation.googleapis.com/language/translate/v2"
+    }
   }
 }
 ```
 
-Apertium:
+Microsoft Azure example:
 
 ```json
 {
-  "tinglyTranslate.provider": "apertium",
-  "tinglyTranslate.sourceLanguage": "eng",
-  "tinglyTranslate.targetLanguage": "spa",
-  "tinglyTranslate.providerOptions": {
-    "endpoint": "https://apertium.org/apy"
+  "tinglyTranslate.provider": "microsoftAzure",
+  "tinglyTranslate.targetLanguage": "zh-Hans",
+  "tinglyTranslate.apiProviderOptions": {
+    "microsoftAzure": {
+      "apiKey": "YOUR_AZURE_TRANSLATOR_KEY",
+      "region": "eastus",
+      "endpoint": "https://api.cognitive.microsofttranslator.com/translate"
+    }
   }
 }
 ```
 
-Baidu:
+China signed API example:
 
 ```json
 {
   "tinglyTranslate.provider": "baidu",
-  "tinglyTranslate.providerOptions": {
-    "appId": "YOUR_BAIDU_APP_ID",
-    "apiKey": "YOUR_BAIDU_SECRET_KEY"
+  "tinglyTranslate.targetLanguage": "zh",
+  "tinglyTranslate.apiProviderOptions": {
+    "baidu": {
+      "appId": "YOUR_BAIDU_APP_ID",
+      "apiKey": "YOUR_BAIDU_SECRET_KEY"
+    }
   }
 }
 ```
 
-Youdao:
+For Youdao, use `provider: "youdao"` with `appKey` and `apiSecret` instead.
 
-```json
-{
-  "tinglyTranslate.provider": "youdao",
-  "tinglyTranslate.providerOptions": {
-    "appKey": "YOUR_YOUDAO_APP_KEY",
-    "apiSecret": "YOUR_YOUDAO_APP_SECRET"
-  }
-}
-```
+### AI Providers
 
-OpenAI-compatible:
+AI translation is configured separately because it has more knobs. Use it when prompt control or better contextual translation matters.
+
+| Provider    | Required options  | Optional options                                                       | Notes                                             |
+| ----------- | ----------------- | ---------------------------------------------------------------------- | ------------------------------------------------- |
+| `openai`    | `apiKey`, `model` | `baseUrl`, `endpoint`, `prompt`, `maxTokens`, `temperature`            | Supports OpenAI-compatible chat completions APIs. |
+| `anthropic` | `apiKey`, `model` | `baseUrl`, `endpoint`, `prompt`, `maxTokens`, `temperature`, `version` | Uses Anthropic Messages API.                      |
+
+OpenAI-compatible example:
 
 ```json
 {
   "tinglyTranslate.provider": "openai",
-  "tinglyTranslate.providerOptions": {
-    "baseUrl": "https://api.openai.com/v1",
-    "apiKey": "YOUR_OPENAI_KEY",
-    "model": "gpt-4o-mini",
-    "prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}"
+  "tinglyTranslate.sourceLanguage": "auto",
+  "tinglyTranslate.targetLanguage": "zh-CN",
+  "tinglyTranslate.aiProviderOptions": {
+    "openai": {
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKey": "YOUR_OPENAI_KEY",
+      "model": "gpt-4o-mini",
+      "prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}",
+      "maxTokens": 2000,
+      "temperature": 0.2
+    }
   }
 }
 ```
 
-Anthropic:
-
-```json
-{
-  "tinglyTranslate.provider": "anthropic",
-  "tinglyTranslate.providerOptions": {
-    "baseUrl": "https://api.anthropic.com/v1",
-    "apiKey": "YOUR_ANTHROPIC_KEY",
-    "model": "claude-3-5-haiku-latest",
-    "prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}"
-  }
-}
-```
+For Anthropic, set `tinglyTranslate.provider` to `anthropic` and use `tinglyTranslate.aiProviderOptions.anthropic` with `baseUrl`, `apiKey`, `model`, optional `prompt`, `maxTokens`, `temperature`, and `version`.
 
 Prompt variables:
 

@@ -183,7 +183,20 @@ function readConfig(forcedMode?: OutputMode): TranslationConfig {
 export function readConfigFromConfiguration(config: ConfigurationReader, forcedMode?: OutputMode): TranslationConfig {
 	const provider = normalizeProvider(config.get<string>('provider', 'googleFree'));
 	const outputMode = forcedMode ?? config.get<OutputMode>('outputMode', 'inline');
-	const providerOptions = config.get<ProviderOptions>('providerOptions', {});
+	const publicProviderOptions = config.get<ProviderOptions>('publicProviderOptions', {});
+	const apiProviderOptions = config.get<ProviderOptions>('apiProviderOptions', {});
+	const aiProviderOptions = config.get<ProviderOptions>('aiProviderOptions', {});
+	const libreTranslateOptions = getObjectOption(publicProviderOptions, 'libreTranslate');
+	const myMemoryOptions = getObjectOption(publicProviderOptions, 'myMemory');
+	const lingvaOptions = getObjectOption(publicProviderOptions, 'lingva');
+	const apertiumOptions = getObjectOption(publicProviderOptions, 'apertium');
+	const googleCloudOptions = getObjectOption(apiProviderOptions, 'googleCloud');
+	const microsoftAzureOptions = getObjectOption(apiProviderOptions, 'microsoftAzure');
+	const deeplOptions = getObjectOption(apiProviderOptions, 'deepl');
+	const baiduOptions = getObjectOption(apiProviderOptions, 'baidu');
+	const youdaoOptions = getObjectOption(apiProviderOptions, 'youdao');
+	const openaiOptions = getObjectOption(aiProviderOptions, 'openai');
+	const anthropicOptions = getObjectOption(aiProviderOptions, 'anthropic');
 
 	return {
 		provider,
@@ -195,64 +208,64 @@ export function readConfigFromConfiguration(config: ConfigurationReader, forcedM
 		proxyEnabled: config.get<boolean>('proxy.enabled', false),
 		proxyUrl: config.get<string>('proxy.url', ''),
 		googleCloud: {
-			apiKey: getStringOption(providerOptions, 'apiKey'),
-			endpoint: getStringOption(providerOptions, 'endpoint'),
+			apiKey: getStringOption(googleCloudOptions, 'apiKey'),
+			endpoint: getStringOption(googleCloudOptions, 'endpoint'),
 		},
 		microsoftAzure: {
-			apiKey: getStringOption(providerOptions, 'apiKey'),
-			endpoint: getStringOption(providerOptions, 'endpoint'),
-			region: getStringOption(providerOptions, 'region'),
+			apiKey: getStringOption(microsoftAzureOptions, 'apiKey'),
+			endpoint: getStringOption(microsoftAzureOptions, 'endpoint'),
+			region: getStringOption(microsoftAzureOptions, 'region'),
 		},
 		libreTranslate: {
-			apiKey: getStringOption(providerOptions, 'apiKey'),
-			endpoint: getStringOption(providerOptions, 'endpoint'),
+			apiKey: getStringOption(libreTranslateOptions, 'apiKey'),
+			endpoint: getStringOption(libreTranslateOptions, 'endpoint'),
 		},
 		deepl: {
-			apiKey: getStringOption(providerOptions, 'apiKey'),
-			endpoint: getStringOption(providerOptions, 'endpoint'),
+			apiKey: getStringOption(deeplOptions, 'apiKey'),
+			endpoint: getStringOption(deeplOptions, 'endpoint'),
 		},
 		myMemory: {
-			apiKey: getStringOption(providerOptions, 'apiKey'),
-			endpoint: getStringOption(providerOptions, 'endpoint'),
-			email: getStringOption(providerOptions, 'email'),
+			apiKey: getStringOption(myMemoryOptions, 'apiKey'),
+			endpoint: getStringOption(myMemoryOptions, 'endpoint'),
+			email: getStringOption(myMemoryOptions, 'email'),
 		},
 		lingva: {
 			apiKey: '',
-			endpoint: getStringOption(providerOptions, 'endpoint', 'https://lingva.ml'),
+			endpoint: getStringOption(lingvaOptions, 'endpoint', 'https://lingva.ml'),
 		},
 		apertium: {
 			apiKey: '',
-			endpoint: getStringOption(providerOptions, 'endpoint', 'https://apertium.org/apy'),
+			endpoint: getStringOption(apertiumOptions, 'endpoint', 'https://apertium.org/apy'),
 		},
 		baidu: {
-			apiKey: getStringOption(providerOptions, 'apiKey'),
-			endpoint: getStringOption(providerOptions, 'endpoint', 'https://fanyi-api.baidu.com/api/trans/vip/translate'),
-			appId: getStringOption(providerOptions, 'appId'),
+			apiKey: getStringOption(baiduOptions, 'apiKey'),
+			endpoint: getStringOption(baiduOptions, 'endpoint', 'https://fanyi-api.baidu.com/api/trans/vip/translate'),
+			appId: getStringOption(baiduOptions, 'appId'),
 		},
 		youdao: {
-			apiKey: getStringOption(providerOptions, 'apiSecret'),
-			endpoint: getStringOption(providerOptions, 'endpoint', 'https://openapi.youdao.com/api'),
-			appKey: getStringOption(providerOptions, 'appKey'),
-			vocabId: getStringOption(providerOptions, 'vocabId'),
+			apiKey: getStringOption(youdaoOptions, 'apiSecret'),
+			endpoint: getStringOption(youdaoOptions, 'endpoint', 'https://openapi.youdao.com/api'),
+			appKey: getStringOption(youdaoOptions, 'appKey'),
+			vocabId: getStringOption(youdaoOptions, 'vocabId'),
 		},
 		openai: {
-			apiKey: getStringOption(providerOptions, 'apiKey'),
-			baseUrl: getStringOption(providerOptions, 'baseUrl', 'https://api.openai.com/v1'),
-			endpoint: getStringOption(providerOptions, 'endpoint'),
-			model: getStringOption(providerOptions, 'model', 'gpt-4o-mini'),
-			prompt: getStringOption(providerOptions, 'prompt', defaultAiPrompt()),
-			maxTokens: getNumberOption(providerOptions, 'maxTokens', 2000),
-			temperature: getNumberOption(providerOptions, 'temperature', 0.2),
+			apiKey: getStringOption(openaiOptions, 'apiKey'),
+			baseUrl: getStringOption(openaiOptions, 'baseUrl', 'https://api.openai.com/v1'),
+			endpoint: getStringOption(openaiOptions, 'endpoint'),
+			model: getStringOption(openaiOptions, 'model', 'gpt-4o-mini'),
+			prompt: getStringOption(openaiOptions, 'prompt', defaultAiPrompt()),
+			maxTokens: getNumberOption(openaiOptions, 'maxTokens', 2000),
+			temperature: getNumberOption(openaiOptions, 'temperature', 0.2),
 		},
 		anthropic: {
-			apiKey: getStringOption(providerOptions, 'apiKey'),
-			baseUrl: getStringOption(providerOptions, 'baseUrl', 'https://api.anthropic.com/v1'),
-			endpoint: getStringOption(providerOptions, 'endpoint'),
-			model: getStringOption(providerOptions, 'model', 'claude-3-5-haiku-latest'),
-			prompt: getStringOption(providerOptions, 'prompt', defaultAiPrompt()),
-			maxTokens: getNumberOption(providerOptions, 'maxTokens', 2000),
-			temperature: getNumberOption(providerOptions, 'temperature', 0.2),
-			version: getStringOption(providerOptions, 'version', '2023-06-01'),
+			apiKey: getStringOption(anthropicOptions, 'apiKey'),
+			baseUrl: getStringOption(anthropicOptions, 'baseUrl', 'https://api.anthropic.com/v1'),
+			endpoint: getStringOption(anthropicOptions, 'endpoint'),
+			model: getStringOption(anthropicOptions, 'model', 'claude-3-5-haiku-latest'),
+			prompt: getStringOption(anthropicOptions, 'prompt', defaultAiPrompt()),
+			maxTokens: getNumberOption(anthropicOptions, 'maxTokens', 2000),
+			temperature: getNumberOption(anthropicOptions, 'temperature', 0.2),
+			version: getStringOption(anthropicOptions, 'version', '2023-06-01'),
 		},
 	};
 }
@@ -281,6 +294,13 @@ export function normalizeProvider(provider: string): ProviderId {
 function getStringOption(options: ProviderOptions, key: string, fallback = ''): string {
 	const value = options[key];
 	return typeof value === 'string' ? value : fallback;
+}
+
+function getObjectOption(options: ProviderOptions, key: string): ProviderOptions {
+	const value = options[key];
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+		? value as ProviderOptions
+		: {};
 }
 
 function getNumberOption(options: ProviderOptions, key: string, fallback: number): number {
@@ -344,7 +364,7 @@ async function translateWithGoogleFree(text: string, config: TranslationConfig):
 }
 
 async function translateWithGoogleCloud(text: string, config: TranslationConfig): Promise<string> {
-	requireApiKey('providerOptions.apiKey', config.googleCloud.apiKey);
+	requireApiKey('apiProviderOptions.googleCloud.apiKey', config.googleCloud.apiKey);
 	const endpoint = new URL(config.googleCloud.endpoint || 'https://translation.googleapis.com/language/translate/v2');
 	endpoint.searchParams.set('key', config.googleCloud.apiKey);
 
@@ -369,7 +389,7 @@ async function translateWithGoogleCloud(text: string, config: TranslationConfig)
 }
 
 async function translateWithMicrosoftAzure(text: string, config: TranslationConfig): Promise<string> {
-	requireApiKey('providerOptions.apiKey', config.microsoftAzure.apiKey);
+	requireApiKey('apiProviderOptions.microsoftAzure.apiKey', config.microsoftAzure.apiKey);
 	const endpoint = new URL(config.microsoftAzure.endpoint || 'https://api.cognitive.microsofttranslator.com/translate');
 	endpoint.searchParams.set('api-version', endpoint.searchParams.get('api-version') || '3.0');
 	endpoint.searchParams.set('to', config.targetLanguage);
@@ -459,7 +479,7 @@ async function translateWithLibreTranslate(text: string, config: TranslationConf
 }
 
 async function translateWithDeepL(text: string, config: TranslationConfig): Promise<string> {
-	requireApiKey('providerOptions.apiKey', config.deepl.apiKey);
+	requireApiKey('apiProviderOptions.deepl.apiKey', config.deepl.apiKey);
 	const endpoint = new URL(config.deepl.endpoint || 'https://api-free.deepl.com/v2/translate');
 	const form = new URLSearchParams();
 	form.set('text', text);
@@ -538,8 +558,8 @@ async function translateWithApertium(text: string, config: TranslationConfig): P
 }
 
 async function translateWithBaidu(text: string, config: TranslationConfig): Promise<string> {
-	requireProviderSetting('providerOptions.appId', config.baidu.appId);
-	requireApiKey('providerOptions.apiKey', config.baidu.apiKey);
+	requireProviderSetting('apiProviderOptions.baidu.appId', config.baidu.appId);
+	requireApiKey('apiProviderOptions.baidu.apiKey', config.baidu.apiKey);
 	const endpoint = new URL(config.baidu.endpoint || 'https://fanyi-api.baidu.com/api/trans/vip/translate');
 	const salt = Date.now().toString();
 	const source = config.sourceLanguage && config.sourceLanguage !== 'auto' ? config.sourceLanguage : 'auto';
@@ -574,8 +594,8 @@ async function translateWithBaidu(text: string, config: TranslationConfig): Prom
 }
 
 async function translateWithYoudao(text: string, config: TranslationConfig): Promise<string> {
-	requireProviderSetting('providerOptions.appKey', config.youdao.appKey);
-	requireApiKey('providerOptions.apiSecret', config.youdao.apiKey);
+	requireProviderSetting('apiProviderOptions.youdao.appKey', config.youdao.appKey);
+	requireApiKey('apiProviderOptions.youdao.apiSecret', config.youdao.apiKey);
 	const endpoint = new URL(config.youdao.endpoint || 'https://openapi.youdao.com/api');
 	const salt = randomId();
 	const curtime = Math.floor(Date.now() / 1000).toString();
@@ -608,7 +628,7 @@ async function translateWithYoudao(text: string, config: TranslationConfig): Pro
 }
 
 async function translateWithOpenAi(text: string, config: TranslationConfig): Promise<string> {
-	requireApiKey('providerOptions.apiKey', config.openai.apiKey);
+	requireApiKey('aiProviderOptions.openai.apiKey', config.openai.apiKey);
 	const endpoint = new URL(config.openai.endpoint || joinUrl(config.openai.baseUrl, 'chat/completions'));
 	const response = await postJson(endpoint, {
 		model: config.openai.model,
@@ -634,7 +654,7 @@ async function translateWithOpenAi(text: string, config: TranslationConfig): Pro
 }
 
 async function translateWithAnthropic(text: string, config: TranslationConfig): Promise<string> {
-	requireApiKey('providerOptions.apiKey', config.anthropic.apiKey);
+	requireApiKey('aiProviderOptions.anthropic.apiKey', config.anthropic.apiKey);
 	const endpoint = new URL(config.anthropic.endpoint || joinUrl(config.anthropic.baseUrl, 'messages'));
 	const response = await postJson(endpoint, {
 		model: config.anthropic.model,
