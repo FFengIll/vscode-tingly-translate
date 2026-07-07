@@ -43,9 +43,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(output, inlineTranslationDecoration);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('vscode-tingly-translate.helloWorld', () => {
-			vscode.window.showInformationMessage('Hello World from tingly-translate!');
-		}),
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelection', () => translateSelection()),
 		vscode.commands.registerCommand('vscode-tingly-translate.clearInlineTranslations', () => clearInlineTranslations()),
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelectionReplace', () => translateSelection('replace')),

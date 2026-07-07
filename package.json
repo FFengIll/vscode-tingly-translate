@@ -18,7 +18,6 @@
   ],
   "activationEvents": [
     "onLanguage",
-    "onCommand:vscode-tingly-translate.helloWorld",
     "onCommand:vscode-tingly-translate.translateSelection",
     "onCommand:vscode-tingly-translate.clearInlineTranslations",
     "onCommand:vscode-tingly-translate.translateSelectionReplace",
@@ -28,10 +27,6 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "vscode-tingly-translate.helloWorld",
-        "title": "Hello World"
-      },
       {
         "command": "vscode-tingly-translate.translateSelection",
         "title": "Tingly Translate: Translate Selection",
