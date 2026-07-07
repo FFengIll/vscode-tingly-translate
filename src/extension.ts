@@ -776,7 +776,8 @@ function applyInlineTranslations(
 		hover.appendText(result.text);
 		hover.isTrusted = false;
 
-		const position = result.selection.end;
+		const line = getInlineTranslationAnchorLine(editor.document, result.selection);
+		const position = editor.document.lineAt(line).range.end;
 		return {
 			range: new vscode.Range(position, position),
 			hoverMessage: hover,
@@ -789,6 +790,14 @@ function applyInlineTranslations(
 	});
 
 	editor.setDecorations(inlineTranslationDecoration, decorations);
+}
+
+function getInlineTranslationAnchorLine(document: vscode.TextDocument, selection: vscode.Selection): number {
+	if (selection.end.character === 0 && selection.end.line > selection.start.line) {
+		return selection.end.line - 1;
+	}
+
+	return Math.min(selection.end.line, document.lineCount - 1);
 }
 
 function clearInlineTranslations(): void {
