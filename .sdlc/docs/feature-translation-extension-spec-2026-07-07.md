@@ -11,7 +11,7 @@ The repository is a TypeScript VS Code extension prototype:
 - Extension entrypoint is `src/extension.ts` and output is bundled to `dist/extension.js` by webpack.
 - `package.json` contributes translation commands, settings, context-menu entries, editor-title action, keybindings, and activation events.
 - The original scaffolded `vscode-tingly-translate.helloWorld` command has been removed.
-- Current provider support is Google and Microsoft/Bing translation.
+- Current provider support is Google free, Google Cloud, Microsoft/Bing free, Microsoft Azure Translator, LibreTranslate, DeepL, MyMemory, Lingva, Apertium, Baidu, Youdao, OpenAI-compatible chat completions, and Anthropic Messages.
 - Default behavior is reading-layer inline translation using VS Code editor decorations, not replacing document text.
 - HTTP requests are implemented with Node built-ins (`http`, `https`, `net`, `tls`) to avoid adding dependencies during the fast prototype.
 - `.pnpm-store/` is ignored because dependency recovery created a local pnpm store artifact.
@@ -21,7 +21,7 @@ Attempted verification:
 - `pnpm run compile` initially aborted because pnpm wanted to purge/recreate `node_modules` in a non-TTY environment.
 - `CI=true pnpm run compile` and `CI=true pnpm install --offline` were attempted, but dependency recovery stalled on registry access to `registry.npmmirror.com`.
 - `package.json` was validated with `JSON.parse`.
-- Full compile/lint verification remains pending until dependencies are restored.
+- After dependency recovery, `./node_modules/.bin/tsc -p . --noEmit` and `./node_modules/.bin/webpack` pass.
 
 ## 2. Goals
 
@@ -34,7 +34,7 @@ Primary user stories:
 3. The default result appears inline beside the selected text as a reading aid without modifying the file.
 4. I can also explicitly replace the selected text, insert the translation below/after the selection, copy it, or show it in an output channel.
 5. I can trigger translation from the Command Palette, editor context menu, editor title button, keyboard shortcut, or VS Code lightbulb/Code Action menu.
-6. I can configure provider, source/target language, free/API-key mode, endpoint, timeout, inline display length, and proxy settings.
+6. I can configure provider, source/target language, provider-specific credentials/endpoints/models/prompts, timeout, inline display length, and proxy settings.
 7. I can use an HTTP proxy for providers that are unreachable from my network.
 
 Non-goals for the first implementation:
@@ -70,9 +70,16 @@ Non-goals for the first implementation:
 | Official Google Cloud Translate client `@google-cloud/translate` | Official Google package. Source: [Google Cloud Node docs](https://docs.cloud.google.com/nodejs/docs/reference/translate/latest/overview) | Official, robust for paid Google Cloud Translate. | Heavier SDK; auth setup; proxy behavior less uniform across all providers. | Consider as dedicated adapter later. First version can use Google REST API directly. |
 | Azure Translator `@azure-rest/ai-translation-text` | Official Azure REST client. Source: [npm `@azure-rest/ai-translation-text`](https://www.npmjs.com/package/%40azure-rest/ai-translation-text) | Official Microsoft/Azure Translator SDK, TypeScript declarations. | Azure auth/region setup; may complicate unified proxy layer. | Consider as dedicated adapter later. First version can use Azure REST API directly. |
 | DeepL `deepl-node` | Official DeepL Node.js client. Source: [npm `deepl-node`](https://www.npmjs.com/package/deepl-node) | Official, typed, high quality. | Provider-specific API key and behavior. Proxy may require SDK-specific support or custom HTTP layer. | Add in later phase or implement REST adapter. |
-| LibreTranslate REST API | Open-source/self-hostable API. Source: [LibreTranslate docs](https://docs.libretranslate.com/) | Easy REST API; can be self-hosted; useful for users avoiding proprietary APIs. | Public instances may rate-limit; quality varies by model. | Later optional provider. Not implemented in the current fast prototype. |
-| Google Translate free web endpoint | Unofficial endpoint `https://translate.googleapis.com/translate_a/single`. | No API key; quick manual validation; fits prototype. | Unofficial and may change or rate-limit. | Current default for `provider=google`, `authMode=free`. |
-| Bing/Microsoft Translator web endpoint | Bing Translator web flow using `https://www.bing.com/translator` plus `ttranslatev3`. | No API key; quick manual validation. | Unofficial session-token flow; may change. | Current default for `provider=microsoft`, `authMode=free`. |
+| LibreTranslate REST API | Open-source/self-hostable API. Source: [LibreTranslate docs](https://docs.libretranslate.com/) | Easy REST API; can be self-hosted; useful for users avoiding proprietary APIs. | Public instances may rate-limit; quality varies by model. | Implemented as `libreTranslate`. |
+| Google Translate free web endpoint | Unofficial endpoint `https://translate.googleapis.com/translate_a/single`. | No API key; quick manual validation; fits prototype. | Unofficial and may change or rate-limit. | Implemented as `googleFree`; current default. |
+| Bing/Microsoft Translator web endpoint | Bing Translator web flow using `https://www.bing.com/translator` plus `ttranslatev3`. | No API key; quick manual validation. | Unofficial session-token flow; may change. | Implemented as `microsoftFree`. |
+| MyMemory API | Public translation memory API. Source: [MyMemory API spec](https://mymemory.translated.net/doc/spec.php) | No local API key required for basic use; supports optional key/email. | Public limits and translation-memory quality vary; language pair should be explicit for best results. | Implemented as `myMemory`. |
+| Lingva Translate | Open alternative frontend/API for Google Translate. Source: [Lingva Translate](https://github.com/thedaviddelta/lingva-translate) | No API key; simple REST shape; instance can be swapped. | Public instances can disappear, rate-limit, or change. | Implemented as `lingva`. |
+| Apertium APY | Open-source rule-based machine translation API. Source: [Apertium APY](https://wiki.apertium.org/wiki/Apertium-apy) | Free/open ecosystem; good for supported language pairs. | Limited language pairs; often expects Apertium language codes like `eng`, `spa`. | Implemented as `apertium`. |
+| Baidu Translate API | Signed Baidu Translate REST API. Source: [Baidu Translate docs](https://fanyi-api.baidu.com/doc/21) | Strong Chinese ecosystem support. | Requires app ID and secret key; signed requests. | Implemented as `baidu`. |
+| Youdao Translate API | Signed Youdao Translate REST API. Source: [Youdao AI docs](https://ai.youdao.com/DOCSIRMA/html/trans/api/wbfy/index.html) | Strong Chinese ecosystem support; optional vocabulary ID. | Requires app key and secret; signed requests. | Implemented as `youdao`. |
+| OpenAI-compatible Chat Completions | Chat-completions-compatible API. Source: [OpenAI Chat Completions API](https://platform.openai.com/docs/api-reference/chat/create) | Configurable model, base URL, and prompt; works with OpenAI-compatible gateways. | Requires API key; prompt/model quality affects output. | Implemented as `openai`. |
+| Anthropic Messages API | Anthropic Claude messages endpoint. Source: [Anthropic Messages API](https://docs.anthropic.com/en/api/messages) | High-quality AI translation with configurable prompt/model. | Requires API key; endpoint shape differs from OpenAI-compatible APIs. | Implemented as `anthropic`. |
 
 ### HTTP/proxy module options
 
@@ -157,26 +164,56 @@ Configuration namespace: `tinglyTranslate`.
 
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
-| `tinglyTranslate.provider` | enum | `google` | Provider: `google`, `microsoft`. |
-| `tinglyTranslate.authMode` | enum | `free` | `free` uses web/free endpoints; `apiKey` uses official cloud endpoints where implemented. |
+| `tinglyTranslate.provider` | enum | `googleFree` | Provider: `googleFree`, `microsoftFree`, `googleCloud`, `microsoftAzure`, `libreTranslate`, `deepl`, `myMemory`, `lingva`, `apertium`, `baidu`, `youdao`, `openai`, `anthropic`. |
 | `tinglyTranslate.sourceLanguage` | string | `auto` | Source language; `auto` means provider auto-detect where supported. |
 | `tinglyTranslate.targetLanguage` | string | `zh-CN` | Target language. |
 | `tinglyTranslate.outputMode` | enum | `inline` | `inline`, `replace`, `insertBelow`, `copy`, `showOnly`. |
 | `tinglyTranslate.inlineMaxChars` | number | `120` | Maximum characters shown in the inline decoration; hover shows the full translation. |
 | `tinglyTranslate.timeoutMs` | number | `30000` | Request timeout. |
-| `tinglyTranslate.apiKey` | string | empty | Provider API key for `authMode=apiKey`; follow-up should use SecretStorage. |
-| `tinglyTranslate.endpoint` | string | provider default | Optional endpoint override. |
-| `tinglyTranslate.microsoftRegion` | string | empty | Microsoft Translator region for official API-key mode. |
 | `tinglyTranslate.proxy.enabled` | boolean | `false` | Enable explicit proxy for translation requests. |
 | `tinglyTranslate.proxy.url` | string | empty | HTTP proxy URL, e.g. `http://127.0.0.1:7890`. HTTPS translation endpoints are tunneled through CONNECT. |
+| `tinglyTranslate.providers.googleCloud.apiKey` | string | empty | Google Cloud Translation API key. |
+| `tinglyTranslate.providers.googleCloud.endpoint` | string | empty | Optional Google Cloud endpoint override. |
+| `tinglyTranslate.providers.microsoftAzure.apiKey` | string | empty | Microsoft Azure Translator API key. |
+| `tinglyTranslate.providers.microsoftAzure.endpoint` | string | empty | Optional Microsoft Azure endpoint override. |
+| `tinglyTranslate.providers.microsoftAzure.region` | string | empty | Microsoft Azure Translator region. |
+| `tinglyTranslate.providers.libreTranslate.endpoint` | string | empty | LibreTranslate endpoint; defaults to `https://libretranslate.com/translate`. |
+| `tinglyTranslate.providers.libreTranslate.apiKey` | string | empty | Optional LibreTranslate API key. |
+| `tinglyTranslate.providers.deepl.apiKey` | string | empty | DeepL API key. |
+| `tinglyTranslate.providers.deepl.endpoint` | string | empty | DeepL endpoint; defaults to DeepL Free API. |
+| `tinglyTranslate.providers.myMemory.endpoint` | string | empty | MyMemory endpoint; defaults to `https://api.mymemory.translated.net/get`. |
+| `tinglyTranslate.providers.myMemory.apiKey` | string | empty | Optional MyMemory API key. |
+| `tinglyTranslate.providers.myMemory.email` | string | empty | Optional MyMemory contact email. |
+| `tinglyTranslate.providers.lingva.endpoint` | string | `https://lingva.ml` | Lingva instance base URL. |
+| `tinglyTranslate.providers.apertium.endpoint` | string | `https://apertium.org/apy` | Apertium APY base URL. |
+| `tinglyTranslate.providers.baidu.appId` | string | empty | Baidu Translate app ID. |
+| `tinglyTranslate.providers.baidu.apiKey` | string | empty | Baidu Translate secret key. |
+| `tinglyTranslate.providers.baidu.endpoint` | string | Baidu endpoint | Baidu Translate API endpoint. |
+| `tinglyTranslate.providers.youdao.appKey` | string | empty | Youdao Translate app key. |
+| `tinglyTranslate.providers.youdao.apiSecret` | string | empty | Youdao Translate app secret. |
+| `tinglyTranslate.providers.youdao.endpoint` | string | Youdao endpoint | Youdao Translate API endpoint. |
+| `tinglyTranslate.providers.youdao.vocabId` | string | empty | Optional Youdao vocabulary ID. |
+| `tinglyTranslate.providers.openai.baseUrl` | string | `https://api.openai.com/v1` | OpenAI-compatible base URL. |
+| `tinglyTranslate.providers.openai.endpoint` | string | empty | Optional full chat completions endpoint override. |
+| `tinglyTranslate.providers.openai.apiKey` | string | empty | OpenAI-compatible API key. |
+| `tinglyTranslate.providers.openai.model` | string | `gpt-4o-mini` | OpenAI-compatible model name. |
+| `tinglyTranslate.providers.openai.prompt` | string | translation prompt | Prompt template supporting `{text}`, `{sourceLanguage}`, `{targetLanguage}`. |
+| `tinglyTranslate.providers.openai.maxTokens` | number | `2000` | Maximum output tokens. |
+| `tinglyTranslate.providers.openai.temperature` | number | `0.2` | Sampling temperature. |
+| `tinglyTranslate.providers.anthropic.baseUrl` | string | `https://api.anthropic.com/v1` | Anthropic base URL. |
+| `tinglyTranslate.providers.anthropic.endpoint` | string | empty | Optional full messages endpoint override. |
+| `tinglyTranslate.providers.anthropic.apiKey` | string | empty | Anthropic API key. |
+| `tinglyTranslate.providers.anthropic.model` | string | `claude-3-5-haiku-latest` | Anthropic model name. |
+| `tinglyTranslate.providers.anthropic.prompt` | string | translation prompt | Prompt template supporting `{text}`, `{sourceLanguage}`, `{targetLanguage}`. |
+| `tinglyTranslate.providers.anthropic.maxTokens` | number | `2000` | Maximum output tokens. |
+| `tinglyTranslate.providers.anthropic.temperature` | number | `0.2` | Sampling temperature. |
+| `tinglyTranslate.providers.anthropic.version` | string | `2023-06-01` | Anthropic API version header. |
 
 Security note: API keys in VS Code settings can leak through checked-in `.vscode/settings.json`. Post-MVP should add commands to set/list/clear provider secrets using `context.secrets`.
 
 ### Current provider behavior
 
-#### Google provider
-
-`authMode=free`:
+#### `googleFree`
 
 - Endpoint default: `https://translate.googleapis.com/translate_a/single`.
 - Method: `GET`.
@@ -189,7 +226,7 @@ Security note: API keys in VS Code settings can leak through checked-in `.vscode
 - Response: concatenate translated text chunks from the first response item.
 - Limitation: unofficial endpoint; may change or rate-limit.
 
-`authMode=apiKey`:
+#### `googleCloud`
 
 - Endpoint default: `https://translation.googleapis.com/language/translate/v2`.
 - Method: `POST`.
@@ -201,9 +238,7 @@ Security note: API keys in VS Code settings can leak through checked-in `.vscode
   - `source`: omitted when source is `auto`
 - Response: `data.translations[0].translatedText`.
 
-#### Microsoft provider
-
-`authMode=free`:
+#### `microsoftFree`
 
 - Session page: `https://www.bing.com/translator`.
 - Extracts `IG` and best-effort `IID`.
@@ -220,7 +255,7 @@ Security note: API keys in VS Code settings can leak through checked-in `.vscode
 - Response: `[0].translations[0].text`.
 - Limitation: unofficial Bing web flow; may change.
 
-`authMode=apiKey`:
+#### `microsoftAzure`
 
 - Endpoint default: `https://api.cognitive.microsofttranslator.com/translate`.
 - Method: `POST`.
@@ -234,6 +269,134 @@ Security note: API keys in VS Code settings can leak through checked-in `.vscode
   - `Content-Type: application/json`
 - Body: `[{ "Text": "<selected text>" }]`.
 - Response: first item in the response array, first translation in `translations`.
+
+#### `libreTranslate`
+
+- Endpoint default: `https://libretranslate.com/translate`.
+- Method: `POST`.
+- Body:
+  - `q`: selected text
+  - `source`: source language or `auto`
+  - `target`: target language
+  - `format`: `text`
+  - `api_key`: optional
+- Response: `translatedText`.
+
+#### `deepl`
+
+- Endpoint default: `https://api-free.deepl.com/v2/translate`.
+- Method: `POST`.
+- Headers:
+  - `Authorization: DeepL-Auth-Key <apiKey>`
+  - `Content-Type: application/x-www-form-urlencoded`
+- Form body:
+  - `text`: selected text
+  - `target_lang`: target language
+  - `source_lang`: source language when not `auto`
+- Response: `translations[0].text`.
+
+#### `myMemory`
+
+- Endpoint default: `https://api.mymemory.translated.net/get`.
+- Method: `GET`.
+- Query:
+  - `q`: selected text
+  - `langpair`: `<source>|<target>`
+  - `key`: optional API key
+  - `de`: optional contact email
+- Response: `responseData.translatedText`.
+- Note: explicit `sourceLanguage` is recommended because MyMemory is language-pair oriented.
+
+#### `lingva`
+
+- Endpoint default: `https://lingva.ml/api/v1/<source>/<target>/<text>`.
+- Method: `GET`.
+- Response: `translation`.
+- Note: endpoint is configurable as an instance base URL.
+
+#### `apertium`
+
+- Endpoint default: `https://apertium.org/apy/translate`.
+- Method: `GET`.
+- Query:
+  - `langpair`: `<source>|<target>`
+  - `q`: selected text
+- Response: `responseData.translatedText`.
+- Note: Apertium supports a limited set of language pairs and often uses three-letter codes such as `eng` and `spa`.
+
+#### `baidu`
+
+- Endpoint default: `https://fanyi-api.baidu.com/api/trans/vip/translate`.
+- Method: `POST`.
+- Form body:
+  - `q`: selected text
+  - `from`: source language or `auto`
+  - `to`: target language
+  - `appid`: configured app ID
+  - `salt`: generated per request
+  - `sign`: `md5(appId + q + salt + secretKey)`
+- Response: join `trans_result[].dst`.
+
+#### `youdao`
+
+- Endpoint default: `https://openapi.youdao.com/api`.
+- Method: `POST`.
+- Form body:
+  - `q`: selected text
+  - `from`: source language or `auto`
+  - `to`: target language
+  - `appKey`: configured app key
+  - `salt`: generated per request
+  - `signType`: `v3`
+  - `curtime`: Unix timestamp
+  - `sign`: `sha256(appKey + input + salt + curtime + appSecret)`
+  - `vocabId`: optional vocabulary ID
+- Response: join `translation[]`.
+
+#### `openai`
+
+- Endpoint default: `{baseUrl}/chat/completions`.
+- Method: `POST`.
+- Headers:
+  - `Authorization: Bearer <apiKey>`
+  - `Content-Type: application/json`
+- Body:
+  - `model`
+  - `messages`: one user message generated from the prompt template
+  - `temperature`
+  - `max_tokens`
+- Response: `choices[0].message.content`.
+
+#### `anthropic`
+
+- Endpoint default: `{baseUrl}/messages`.
+- Method: `POST`.
+- Headers:
+  - `x-api-key`
+  - `anthropic-version`
+  - `Content-Type: application/json`
+- Body:
+  - `model`
+  - `max_tokens`
+  - `temperature`
+  - `messages`: one user message generated from the prompt template
+- Response: concatenate text parts from `content`.
+
+### AI prompt templates
+
+Prompt templates support:
+
+- `{text}`
+- `{sourceLanguage}`
+- `{targetLanguage}`
+
+Default prompt:
+
+```text
+Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation, without explanations or quotes.
+
+{text}
+```
 
 ### Inline display behavior
 
@@ -261,7 +424,7 @@ The current implementation intentionally keeps the prototype in one file:
 - config loading
 - selection handling
 - inline decoration rendering
-- Google/Microsoft providers
+- provider implementations for web/free, traditional translation APIs, and AI translation APIs
 - HTTP and HTTP-proxy helpers
 
 Recommended post-prototype layout:
@@ -290,7 +453,7 @@ src/
 2. Validate that at least one selection is non-empty.
 3. Read and normalize `tinglyTranslate` settings.
 4. Validate provider-specific required settings:
-   - only require `apiKey` when `authMode=apiKey`.
+   - only require API keys for providers that need them.
 5. Translate each selection independently for editor-editing modes.
 6. For `copy` and `showOnly`, join selected source text with `\n\n` before translation.
 7. Apply output mode:
@@ -388,7 +551,7 @@ Use concise VS Code notifications for expected user-facing failures:
 | --- | --- |
 | No active editor | `Open an editor and select text to translate.` |
 | No selected text | `Select text to translate first.` |
-| Missing API key in API-key mode | `Configure tinglyTranslate.apiKey before using <provider>.` |
+| Missing provider API key | `Configure tinglyTranslate.providers.<provider>.apiKey before using this provider.` |
 | Timeout | `Translation request timed out after <timeout> ms.` |
 | Network/proxy failure | `Translation request failed. Check provider endpoint and proxy settings.` |
 | Provider response parse failure | `Translation provider returned an unexpected response.` |
@@ -400,8 +563,8 @@ Detailed diagnostics should go to an output channel named `Tingly Translate`. Do
 
 - Never log selected source text by default.
 - Never log API keys, authorization headers, full signed URLs, or proxy credentials.
-- Warn in README and setting descriptions that `tinglyTranslate.apiKey` in settings is an MVP compromise.
-- Warn that `authMode=free` uses unofficial web endpoints that may change.
+- Warn in README and setting descriptions that `tinglyTranslate.providers.<provider>.apiKey` settings are an MVP compromise.
+- Warn that `googleFree` and `microsoftFree` use unofficial web endpoints that may change.
 - Follow-up: add commands:
   - `Tingly Translate: Set Provider API Key`
   - `Tingly Translate: Clear Provider API Key`
@@ -463,7 +626,7 @@ If VS Code extension tests are added, cover:
    - shortcut
    - lightbulb/Code Action menu
 7. Verify `replace`, `insertBelow`, and `copy` commands still work.
-8. Repeat with `provider=microsoft`, `authMode=free`.
+8. Repeat with `provider=microsoftFree`, `libreTranslate`, `myMemory`, `lingva`, `apertium`, `deepl`, `baidu`, `youdao`, `openai`, and `anthropic` as endpoints/credentials allow.
 9. Repeat with proxy enabled if the provider endpoint is only reachable through proxy.
 
 ## 10. Acceptance criteria
@@ -475,9 +638,9 @@ MVP is complete when:
 - Inline translation uses editor decorations and does not modify files.
 - Clear inline translations command works.
 - Command Palette, editor context menu, editor title button, keybinding, and Code Action/lightbulb entries work.
-- Google free mode works without API key.
-- Microsoft/Bing free mode works without API key.
-- Official Google and Microsoft API-key modes are available.
+- `googleFree` works without API key.
+- `microsoftFree` works without API key.
+- `googleCloud`, `microsoftAzure`, `libreTranslate`, `deepl`, `myMemory`, `lingva`, `apertium`, `baidu`, `youdao`, `openai`, and `anthropic` provider paths are available.
 - Configurable source language, target language, output mode, inline max chars, auth mode, endpoint, API key, timeout, Microsoft region, and proxy settings are documented in `package.json`.
 - Selection replacement, insert-below, copy, and show-only behavior remain available.
 - User-facing errors are actionable and do not leak secrets.
@@ -499,7 +662,7 @@ Recommended order:
 
 Optional second phase:
 
-1. Add LibreTranslate, DeepL, and custom REST adapters.
+1. Add custom REST adapters.
 2. Add language picker commands.
 3. Add output channel command for viewing diagnostics.
 4. Add SOCKS proxy support through `proxy-agent` if users need it.

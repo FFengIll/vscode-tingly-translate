@@ -1,15 +1,15 @@
 # Tingly Translate
 
-Fast prototype VS Code extension for translating selected editor text with Google Translate or Microsoft Translator.
+VS Code reading-layer translation for selected editor text.
 
 ## Features
 
-- Translate the current editor selection as an inline reading aid by default.
-- Show translations beside the selected text without changing the file.
-- Replace the selection, insert the translation below, copy the translation, or show it in the `Tingly Translate` output channel when explicitly configured or commanded.
-- Use free Google/Bing web translation endpoints by default.
-- Optional official Google Cloud / Microsoft Translator API-key mode.
-- Optional HTTP proxy support for HTTPS translation endpoints.
+- Translate the current editor selection as inline decorations by default.
+- Show translations beside selected text without modifying or saving the file.
+- Trigger translation from the Command Palette, editor title globe button, context menu, keyboard shortcut, or lightbulb Code Action menu.
+- Keep explicit replace, insert-below, copy, and output-channel commands for editing workflows.
+- Use free web endpoints, traditional translation APIs, or AI translation providers.
+- Route requests through an HTTP proxy when needed.
 
 ## Commands
 
@@ -19,14 +19,11 @@ Fast prototype VS Code extension for translating selected editor text with Googl
 - `Tingly Translate: Insert Translation Below`
 - `Tingly Translate: Copy Translation`
 
-When text is selected, the translate command also appears as a globe button in the editor title bar.
-
-## Settings
+## Basic Settings
 
 ```json
 {
-  "tinglyTranslate.provider": "google",
-  "tinglyTranslate.authMode": "free",
+  "tinglyTranslate.provider": "googleFree",
   "tinglyTranslate.sourceLanguage": "auto",
   "tinglyTranslate.targetLanguage": "zh-CN",
   "tinglyTranslate.outputMode": "inline",
@@ -37,39 +34,131 @@ When text is selected, the translate command also appears as a globe button in t
 }
 ```
 
-Microsoft Translator example:
+Provider choices:
+
+- `googleFree`
+- `microsoftFree`
+- `googleCloud`
+- `microsoftAzure`
+- `libreTranslate`
+- `deepl`
+- `myMemory`
+- `lingva`
+- `apertium`
+- `baidu`
+- `youdao`
+- `openai`
+- `anthropic`
+
+## Provider Examples
+
+LibreTranslate:
 
 ```json
 {
-  "tinglyTranslate.provider": "microsoft",
-  "tinglyTranslate.authMode": "free",
-  "tinglyTranslate.targetLanguage": "zh-Hans"
+  "tinglyTranslate.provider": "libreTranslate",
+  "tinglyTranslate.providers.libreTranslate.endpoint": "https://libretranslate.com/translate",
+  "tinglyTranslate.providers.libreTranslate.apiKey": ""
 }
 ```
 
-Official API-key mode is still available:
+DeepL:
 
 ```json
 {
-  "tinglyTranslate.provider": "microsoft",
-  "tinglyTranslate.authMode": "apiKey",
-  "tinglyTranslate.apiKey": "YOUR_AZURE_TRANSLATOR_KEY",
-  "tinglyTranslate.microsoftRegion": "eastus",
-  "tinglyTranslate.targetLanguage": "zh-Hans"
+  "tinglyTranslate.provider": "deepl",
+  "tinglyTranslate.targetLanguage": "ZH",
+  "tinglyTranslate.providers.deepl.apiKey": "YOUR_DEEPL_KEY"
 }
 ```
 
-Google free mode uses `https://translate.googleapis.com/translate_a/single` by default.
-Microsoft free mode uses Bing Translator web endpoints by default.
-Official Google API-key mode uses `https://translation.googleapis.com/language/translate/v2`.
-Official Microsoft API-key mode uses `https://api.cognitive.microsofttranslator.com/translate`.
+MyMemory:
 
-Use `tinglyTranslate.endpoint` only when you need to override the provider endpoint.
+```json
+{
+  "tinglyTranslate.provider": "myMemory",
+  "tinglyTranslate.sourceLanguage": "en",
+  "tinglyTranslate.targetLanguage": "zh-CN",
+  "tinglyTranslate.providers.myMemory.email": "you@example.com"
+}
+```
 
-## Prototype Notes
+Lingva:
 
-- Free web endpoints are unofficial and may change.
-- Inline translations are editor decorations only; they do not modify or save the document.
-- API keys are read from VS Code settings for speed when `authMode` is `apiKey`. Do not commit workspace settings containing keys.
+```json
+{
+  "tinglyTranslate.provider": "lingva",
+  "tinglyTranslate.providers.lingva.endpoint": "https://lingva.ml"
+}
+```
+
+Apertium:
+
+```json
+{
+  "tinglyTranslate.provider": "apertium",
+  "tinglyTranslate.sourceLanguage": "eng",
+  "tinglyTranslate.targetLanguage": "spa",
+  "tinglyTranslate.providers.apertium.endpoint": "https://apertium.org/apy"
+}
+```
+
+Baidu:
+
+```json
+{
+  "tinglyTranslate.provider": "baidu",
+  "tinglyTranslate.providers.baidu.appId": "YOUR_BAIDU_APP_ID",
+  "tinglyTranslate.providers.baidu.apiKey": "YOUR_BAIDU_SECRET_KEY"
+}
+```
+
+Youdao:
+
+```json
+{
+  "tinglyTranslate.provider": "youdao",
+  "tinglyTranslate.providers.youdao.appKey": "YOUR_YOUDAO_APP_KEY",
+  "tinglyTranslate.providers.youdao.apiSecret": "YOUR_YOUDAO_APP_SECRET"
+}
+```
+
+OpenAI-compatible:
+
+```json
+{
+  "tinglyTranslate.provider": "openai",
+  "tinglyTranslate.providers.openai.baseUrl": "https://api.openai.com/v1",
+  "tinglyTranslate.providers.openai.apiKey": "YOUR_OPENAI_KEY",
+  "tinglyTranslate.providers.openai.model": "gpt-4o-mini",
+  "tinglyTranslate.providers.openai.prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}"
+}
+```
+
+Anthropic:
+
+```json
+{
+  "tinglyTranslate.provider": "anthropic",
+  "tinglyTranslate.providers.anthropic.baseUrl": "https://api.anthropic.com/v1",
+  "tinglyTranslate.providers.anthropic.apiKey": "YOUR_ANTHROPIC_KEY",
+  "tinglyTranslate.providers.anthropic.model": "claude-3-5-haiku-latest",
+  "tinglyTranslate.providers.anthropic.prompt": "Translate the following text from {sourceLanguage} to {targetLanguage}. Return only the translation.\n\n{text}"
+}
+```
+
+Prompt variables:
+
+- `{text}`
+- `{sourceLanguage}`
+- `{targetLanguage}`
+
+## Notes
+
+- Free Google/Bing endpoints are unofficial and may change.
+- MyMemory, Lingva, and Apertium can be used without local API keys, subject to public instance limits and language-pair support.
+- Baidu and Youdao use signed API requests and require app credentials.
+- Inline translations are editor decorations only.
+- API keys are read from VS Code settings for this prototype. Do not commit workspace settings containing keys.
 - Proxy support currently expects an HTTP proxy URL and tunnels HTTPS requests with `CONNECT`.
 - SOCKS and PAC proxy support are not implemented yet.
