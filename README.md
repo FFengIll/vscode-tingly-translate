@@ -1,71 +1,69 @@
-# vscode-tingly-translate README
+# Tingly Translate
 
-This is the README for your extension "vscode-tingly-translate". After writing up a brief description, we recommend including the following sections.
+Fast prototype VS Code extension for translating selected editor text with Google Translate or Microsoft Translator.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Translate the current editor selection.
+- Replace the selection, insert the translation below, copy the translation, or show it in the `Tingly Translate` output channel.
+- Use free Google/Bing web translation endpoints by default.
+- Optional official Google Cloud / Microsoft Translator API-key mode.
+- Optional HTTP proxy support for HTTPS translation endpoints.
 
-For example if there is an image subfolder under your extension project workspace:
+## Commands
 
-\!\[feature X\]\(images/feature-x.png\)
+- `Tingly Translate: Translate Selection`
+- `Tingly Translate: Replace Selection with Translation`
+- `Tingly Translate: Insert Translation Below`
+- `Tingly Translate: Copy Translation`
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Settings
 
-## Requirements
+```json
+{
+  "tinglyTranslate.provider": "google",
+  "tinglyTranslate.authMode": "free",
+  "tinglyTranslate.sourceLanguage": "auto",
+  "tinglyTranslate.targetLanguage": "zh-CN",
+  "tinglyTranslate.outputMode": "replace",
+  "tinglyTranslate.timeoutMs": 30000,
+  "tinglyTranslate.proxy.enabled": false,
+  "tinglyTranslate.proxy.url": "http://127.0.0.1:7890"
+}
+```
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Microsoft Translator example:
 
-## Extension Settings
+```json
+{
+  "tinglyTranslate.provider": "microsoft",
+  "tinglyTranslate.authMode": "free",
+  "tinglyTranslate.targetLanguage": "zh-Hans"
+}
+```
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Official API-key mode is still available:
 
-For example:
+```json
+{
+  "tinglyTranslate.provider": "microsoft",
+  "tinglyTranslate.authMode": "apiKey",
+  "tinglyTranslate.apiKey": "YOUR_AZURE_TRANSLATOR_KEY",
+  "tinglyTranslate.microsoftRegion": "eastus",
+  "tinglyTranslate.targetLanguage": "zh-Hans"
+}
+```
 
-This extension contributes the following settings:
+Google free mode uses `https://translate.googleapis.com/translate_a/single` by default.
+Microsoft free mode uses Bing Translator web endpoints by default.
+Official Google API-key mode uses `https://translation.googleapis.com/language/translate/v2`.
+Official Microsoft API-key mode uses `https://api.cognitive.microsofttranslator.com/translate`.
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+Use `tinglyTranslate.endpoint` only when you need to override the provider endpoint.
 
-## Known Issues
+## Prototype Notes
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+- Free web endpoints are unofficial and may change.
+- API keys are read from VS Code settings for speed when `authMode` is `apiKey`. Do not commit workspace settings containing keys.
+- Proxy support currently expects an HTTP proxy URL and tunnels HTTPS requests with `CONNECT`.
+- SOCKS and PAC proxy support are not implemented yet.

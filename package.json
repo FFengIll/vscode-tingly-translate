@@ -9,15 +9,136 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:vscode-tingly-translate.helloWorld",
+    "onCommand:vscode-tingly-translate.translateSelection",
+    "onCommand:vscode-tingly-translate.translateSelectionReplace",
+    "onCommand:vscode-tingly-translate.translateSelectionInsertBelow",
+    "onCommand:vscode-tingly-translate.translateSelectionCopy"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "vscode-tingly-translate.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "vscode-tingly-translate.translateSelection",
+        "title": "Tingly Translate: Translate Selection"
+      },
+      {
+        "command": "vscode-tingly-translate.translateSelectionReplace",
+        "title": "Tingly Translate: Replace Selection with Translation"
+      },
+      {
+        "command": "vscode-tingly-translate.translateSelectionInsertBelow",
+        "title": "Tingly Translate: Insert Translation Below"
+      },
+      {
+        "command": "vscode-tingly-translate.translateSelectionCopy",
+        "title": "Tingly Translate: Copy Translation"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "vscode-tingly-translate.translateSelection",
+          "when": "editorHasSelection",
+          "group": "9_cutcopypaste"
+        },
+        {
+          "command": "vscode-tingly-translate.translateSelectionReplace",
+          "when": "editorHasSelection",
+          "group": "9_cutcopypaste"
+        },
+        {
+          "command": "vscode-tingly-translate.translateSelectionInsertBelow",
+          "when": "editorHasSelection",
+          "group": "9_cutcopypaste"
+        },
+        {
+          "command": "vscode-tingly-translate.translateSelectionCopy",
+          "when": "editorHasSelection",
+          "group": "9_cutcopypaste"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Tingly Translate",
+      "properties": {
+        "tinglyTranslate.provider": {
+          "type": "string",
+          "enum": [
+            "google",
+            "microsoft"
+          ],
+          "default": "google",
+          "description": "Translation provider used by Tingly Translate."
+        },
+        "tinglyTranslate.sourceLanguage": {
+          "type": "string",
+          "default": "auto",
+          "description": "Source language. Use auto to let the provider detect it."
+        },
+        "tinglyTranslate.targetLanguage": {
+          "type": "string",
+          "default": "zh-CN",
+          "description": "Target language, such as zh-CN, en, ja, or fr."
+        },
+        "tinglyTranslate.outputMode": {
+          "type": "string",
+          "enum": [
+            "replace",
+            "insertBelow",
+            "copy",
+            "showOnly"
+          ],
+          "default": "replace",
+          "description": "Default output behavior for Translate Selection."
+        },
+        "tinglyTranslate.authMode": {
+          "type": "string",
+          "enum": [
+            "free",
+            "apiKey"
+          ],
+          "default": "free",
+          "description": "Use free web endpoints or official API-key endpoints."
+        },
+        "tinglyTranslate.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Provider API key for authMode=apiKey. Prototype only: prefer user settings, not checked-in workspace settings."
+        },
+        "tinglyTranslate.endpoint": {
+          "type": "string",
+          "default": "",
+          "description": "Optional provider endpoint override. Leave empty for the Google or Microsoft default."
+        },
+        "tinglyTranslate.microsoftRegion": {
+          "type": "string",
+          "default": "",
+          "description": "Microsoft Translator region, such as eastus. Required for many Azure Translator resources."
+        },
+        "tinglyTranslate.timeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 1000,
+          "description": "Request timeout in milliseconds."
+        },
+        "tinglyTranslate.proxy.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable HTTP proxy for translation requests."
+        },
+        "tinglyTranslate.proxy.url": {
+          "type": "string",
+          "default": "",
+          "description": "HTTP proxy URL, for example http://127.0.0.1:7890. HTTPS translation endpoints are tunneled through CONNECT."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
