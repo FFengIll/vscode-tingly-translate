@@ -12,6 +12,7 @@
   "activationEvents": [
     "onCommand:vscode-tingly-translate.helloWorld",
     "onCommand:vscode-tingly-translate.translateSelection",
+    "onCommand:vscode-tingly-translate.clearInlineTranslations",
     "onCommand:vscode-tingly-translate.translateSelectionReplace",
     "onCommand:vscode-tingly-translate.translateSelectionInsertBelow",
     "onCommand:vscode-tingly-translate.translateSelectionCopy"
@@ -26,6 +27,10 @@
       {
         "command": "vscode-tingly-translate.translateSelection",
         "title": "Tingly Translate: Translate Selection"
+      },
+      {
+        "command": "vscode-tingly-translate.clearInlineTranslations",
+        "title": "Tingly Translate: Clear Inline Translations"
       },
       {
         "command": "vscode-tingly-translate.translateSelectionReplace",
@@ -45,6 +50,10 @@
         {
           "command": "vscode-tingly-translate.translateSelection",
           "when": "editorHasSelection",
+          "group": "9_cutcopypaste"
+        },
+        {
+          "command": "vscode-tingly-translate.clearInlineTranslations",
           "group": "9_cutcopypaste"
         },
         {
@@ -89,13 +98,21 @@
         "tinglyTranslate.outputMode": {
           "type": "string",
           "enum": [
+            "inline",
             "replace",
             "insertBelow",
             "copy",
             "showOnly"
           ],
-          "default": "replace",
+          "default": "inline",
           "description": "Default output behavior for Translate Selection."
+        },
+        "tinglyTranslate.inlineMaxChars": {
+          "type": "number",
+          "default": 120,
+          "minimum": 20,
+          "maximum": 500,
+          "description": "Maximum characters shown in the inline translation decoration before truncating. Hover shows the full translation."
         },
         "tinglyTranslate.authMode": {
           "type": "string",

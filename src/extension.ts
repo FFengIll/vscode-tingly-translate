@@ -5,7 +5,7 @@ import * as tls from 'tls';
 import * as vscode from 'vscode';
 
 type ProviderId = 'google' | 'microsoft';
-type OutputMode = 'replace' | 'insertBelow' | 'copy' | 'showOnly';
+type OutputMode = 'inline' | 'replace' | 'insertBelow' | 'copy' | 'showOnly';
 type AuthMode = 'free' | 'apiKey';
 
 interface TranslationConfig {
@@ -18,6 +18,7 @@ interface TranslationConfig {
 	endpoint: string;
 	microsoftRegion: string;
 	timeoutMs: number;
+	inlineMaxChars: number;
 	proxyEnabled: boolean;
 	proxyUrl: string;
 }
@@ -29,15 +30,24 @@ interface HttpResponse {
 }
 
 const output = vscode.window.createOutputChannel('Tingly Translate');
+const inlineTranslationDecoration = vscode.window.createTextEditorDecorationType({
+	after: {
+		margin: '0 0 0 1em',
+		color: new vscode.ThemeColor('descriptionForeground'),
+		fontStyle: 'italic',
+	},
+	rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+});
 
 export function activate(context: vscode.ExtensionContext) {
-	context.subscriptions.push(output);
+	context.subscriptions.push(output, inlineTranslationDecoration);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('vscode-tingly-translate.helloWorld', () => {
 			vscode.window.showInformationMessage('Hello World from tingly-translate!');
 		}),
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelection', () => translateSelection()),
+		vscode.commands.registerCommand('vscode-tingly-translate.clearInlineTranslations', () => clearInlineTranslations()),
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelectionReplace', () => translateSelection('replace')),
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelectionInsertBelow', () => translateSelection('insertBelow')),
 		vscode.commands.registerCommand('vscode-tingly-translate.translateSelectionCopy', () => translateSelection('copy')),
@@ -91,7 +101,7 @@ async function translateSelection(forcedMode?: OutputMode): Promise<void> {
 					});
 				}
 
-				await applyEditorResults(editor, translated, config.outputMode);
+				await applyEditorResults(editor, translated, config.outputMode, config);
 			} catch (error) {
 				reportError(error);
 			}
@@ -102,7 +112,7 @@ async function translateSelection(forcedMode?: OutputMode): Promise<void> {
 function readConfig(forcedMode?: OutputMode): TranslationConfig {
 	const config = vscode.workspace.getConfiguration('tinglyTranslate');
 	const provider = config.get<string>('provider', 'google');
-	const outputMode = forcedMode ?? config.get<OutputMode>('outputMode', 'replace');
+	const outputMode = forcedMode ?? config.get<OutputMode>('outputMode', 'inline');
 
 	return {
 		provider: provider === 'microsoft' ? 'microsoft' : 'google',
@@ -114,6 +124,7 @@ function readConfig(forcedMode?: OutputMode): TranslationConfig {
 		endpoint: config.get<string>('endpoint', ''),
 		microsoftRegion: config.get<string>('microsoftRegion', ''),
 		timeoutMs: config.get<number>('timeoutMs', 30000),
+		inlineMaxChars: config.get<number>('inlineMaxChars', 120),
 		proxyEnabled: config.get<boolean>('proxy.enabled', false),
 		proxyUrl: config.get<string>('proxy.url', ''),
 	};
@@ -261,7 +272,13 @@ async function applyEditorResults(
 	editor: vscode.TextEditor,
 	results: Array<{ selection: vscode.Selection; text: string }>,
 	outputMode: OutputMode,
+	config?: TranslationConfig,
 ): Promise<void> {
+	if (outputMode === 'inline') {
+		applyInlineTranslations(editor, results, config?.inlineMaxChars ?? 120);
+		return;
+	}
+
 	if (outputMode === 'insertBelow') {
 		await editor.edit((edit) => {
 			for (const result of [...results].reverse()) {
@@ -287,6 +304,51 @@ async function applyEditorResults(
 			edit.replace(result.selection, result.text);
 		}
 	});
+}
+
+function applyInlineTranslations(
+	editor: vscode.TextEditor,
+	results: Array<{ selection: vscode.Selection; text: string }>,
+	inlineMaxChars: number,
+): void {
+	const decorations = results.map((result) => {
+		const inlineText = formatInlineTranslation(result.text, inlineMaxChars);
+		const hover = new vscode.MarkdownString();
+		hover.appendMarkdown('**Tingly Translate**\n\n');
+		hover.appendText(result.text);
+		hover.isTrusted = false;
+
+		const position = result.selection.end;
+		return {
+			range: new vscode.Range(position, position),
+			hoverMessage: hover,
+			renderOptions: {
+				after: {
+					contentText: `  ${inlineText}`,
+				},
+			},
+		};
+	});
+
+	editor.setDecorations(inlineTranslationDecoration, decorations);
+}
+
+function clearInlineTranslations(): void {
+	const editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		return;
+	}
+
+	editor.setDecorations(inlineTranslationDecoration, []);
+}
+
+function formatInlineTranslation(text: string, inlineMaxChars: number): string {
+	const compact = text.replace(/\s+/g, ' ').trim();
+	if (compact.length <= inlineMaxChars) {
+		return `=> ${compact}`;
+	}
+
+	return `=> ${compact.slice(0, Math.max(20, inlineMaxChars - 1))}...`;
 }
 
 async function postJson(
