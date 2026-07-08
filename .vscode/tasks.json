@@ -4,10 +4,26 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "npm: watch",
 			"type": "npm",
 			"script": "watch",
-			"problemMatcher": "$ts-webpack-watch",
 			"isBackground": true,
+			"problemMatcher": {
+				"owner": "typescript",
+				"fileLocation": [
+					"relative",
+					"${workspaceFolder}"
+				],
+				"pattern": {
+					"regexp": "^ERROR in (.*)$",
+					"message": 1
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "^.*$",
+					"endsPattern": "^.*compiled (successfully|with .*)$"
+				}
+			},
 			"presentation": {
 				"reveal": "never",
 				"group": "watchers"
@@ -18,6 +34,7 @@
 			}
 		},
 		{
+			"label": "npm: watch-tests",
 			"type": "npm",
 			"script": "watch-tests",
 			"problemMatcher": "$tsc-watch",
